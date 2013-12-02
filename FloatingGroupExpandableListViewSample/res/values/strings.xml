@@ -1,0 +1,8 @@
+<resources>
+
+    <string name="app_name">FloatingGroupExpandableListView</string>
+    <string name="android_versions_title">Android Versions</string>
+    <string name="android_versions_description">Starting from Cupcake (API LEVEL 3)</string>
+    <string name="github_text">FloatingGroupExpandableListView</string>
+
+</resources>
