@@ -12,6 +12,10 @@
 bin/
 gen/
 
+# Ignore gradle files
+.gradle/
+build/
+
 # Local configuration file (sdk path, etc)
 local.properties
 
@@ -27,3 +31,16 @@ proguard/
 *.ipr
 *.iws
 .idea/
+
+# OSX files
+.DS_Store
+.AppleDouble
+.LSOverride
+.Spotlight-V100
+.Trashes
+
+# Windows files
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
