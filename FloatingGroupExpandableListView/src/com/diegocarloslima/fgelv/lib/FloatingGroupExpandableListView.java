@@ -94,7 +94,7 @@ public class FloatingGroupExpandableListView extends ExpandableListView {
 	@Override
 	public void setAdapter(ExpandableListAdapter adapter) {
 		if(!(adapter instanceof WrapperExpandableListAdapter)) {
-			throw new IllegalArgumentException("The adapter must be an instance of EZWrapperExpandableListAdapter");
+			throw new IllegalArgumentException("The adapter must be an instance of WrapperExpandableListAdapter");
 		}
 		setAdapter((WrapperExpandableListAdapter) adapter);
 	}
