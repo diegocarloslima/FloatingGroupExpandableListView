@@ -82,7 +82,7 @@ public class WrapperExpandableListAdapter extends BaseExpandableListAdapter {
 			}
 			convertView.setTag(R.id.fgelv_tag_changed_visibility, null);
 		}
-		
+		mGroupExpandedMap.put(groupPosition, isExpanded);
 		return mWrappedAdapter.getGroupView(groupPosition, isExpanded, convertView, parent);
 	}
 	
