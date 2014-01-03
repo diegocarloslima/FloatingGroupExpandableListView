@@ -8,7 +8,6 @@ import android.graphics.RectF;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.MotionEvent;
-import android.view.SoundEffectConstants;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AbsListView;
@@ -16,7 +15,7 @@ import android.widget.ExpandableListAdapter;
 import android.widget.ExpandableListView;
 
 public class FloatingGroupExpandableListView extends ExpandableListView {
-	
+
 	private static final String TAG = FloatingGroupExpandableListView.class.getName();
 
 	private WrapperExpandableListAdapter mAdapter;
@@ -27,8 +26,10 @@ public class FloatingGroupExpandableListView extends ExpandableListView {
 	private int mCurrentFloatingGroupPosition;
 	private int mCurrentFloatingGroupScrollY;
 	private OnScrollFloatingGroupListener mOnScrollFloatingGroupListener;
+	
 	// We need to add an AttachInfo instance to the FloatingGroupView in order to have proper touch event handling
 	private Object mViewAttachInfo;
+	private boolean mInterceptingTouchEvent;
 
 	public FloatingGroupExpandableListView(Context context) {
 		this(context, null);
@@ -76,32 +77,32 @@ public class FloatingGroupExpandableListView extends ExpandableListView {
 
 	@Override
 	public boolean dispatchTouchEvent(MotionEvent ev) {
-		boolean handled = false;
+		if((ev.getAction() & MotionEvent.ACTION_MASK) == MotionEvent.ACTION_DOWN) {
+			mInterceptingTouchEvent = false;
+		}
 
-		if(mCurrentFloatingGroupView != null) {
-			handled = mCurrentFloatingGroupView.dispatchTouchEvent(ev);
-			if(ev.getAction() == MotionEvent.ACTION_UP) {
-				final int screenCoords[] = new int[2];
-				getLocationOnScreen(screenCoords);
-				final RectF rect = new RectF(screenCoords[0], screenCoords[1], screenCoords[0] + mCurrentFloatingGroupView.getWidth(), screenCoords[1] + mCurrentFloatingGroupView.getHeight());
+		if(!mInterceptingTouchEvent && mCurrentFloatingGroupView != null) {
+			final int screenCoords[] = new int[2];
 
-				if(!handled && rect.contains(ev.getRawX(), ev.getRawY())) {
-					if(mAdapter.isGroupExpanded(mCurrentFloatingGroupPosition)) {
-						collapseGroup(mCurrentFloatingGroupPosition);
-					} else {
-						expandGroup(mCurrentFloatingGroupPosition);
-					}
-					setSelectedGroup(mCurrentFloatingGroupPosition);
-					playSoundEffect(SoundEffectConstants.CLICK);
-
-					handled = true;
+			getLocationOnScreen(screenCoords);
+			final RectF rect = new RectF(screenCoords[0], screenCoords[1], screenCoords[0] + mCurrentFloatingGroupView.getWidth(), screenCoords[1] + mCurrentFloatingGroupView.getHeight());
+			if(rect.contains(ev.getRawX(), ev.getRawY())) {
+				if(mCurrentFloatingGroupView.dispatchTouchEvent(ev)) {
+					onInterceptTouchEvent(ev);
+					return true;
 				}
 			}
 		}
 
-		return handled || super.dispatchTouchEvent(ev);
+		return super.dispatchTouchEvent(ev);
 	}
 
+	@Override
+	public boolean onInterceptTouchEvent(MotionEvent ev) {
+		mInterceptingTouchEvent = super.onInterceptTouchEvent(ev);
+		return mInterceptingTouchEvent;
+	}
+	
 	@Override
 	public void setAdapter(ExpandableListAdapter adapter) {
 		if(!(adapter instanceof WrapperExpandableListAdapter)) {
@@ -173,6 +174,21 @@ public class FloatingGroupExpandableListView extends ExpandableListView {
 
 		if(mCurrentFloatingGroupPosition >= 0) {
 			mCurrentFloatingGroupView = mAdapter.getGroupView(mCurrentFloatingGroupPosition, mAdapter.isGroupExpanded(mCurrentFloatingGroupPosition), mCurrentFloatingGroupView, this);
+			if(!mCurrentFloatingGroupView.isClickable()) {
+				mCurrentFloatingGroupView.setOnClickListener(new View.OnClickListener() {
+
+					@Override
+					public void onClick(View v) {
+						if(mAdapter.isGroupExpanded(mCurrentFloatingGroupPosition)) {
+							collapseGroup(mCurrentFloatingGroupPosition);
+						} else {
+							expandGroup(mCurrentFloatingGroupPosition);
+						}
+						setSelectedGroup(mCurrentFloatingGroupPosition);
+						// playSoundEffect(SoundEffectConstants.CLICK);
+					}
+				});
+			}
 			loadAttachInfo();
 			setAttachInfo(mCurrentFloatingGroupView);
 		}
