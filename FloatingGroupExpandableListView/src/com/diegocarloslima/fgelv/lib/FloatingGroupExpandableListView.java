@@ -94,12 +94,8 @@ public class FloatingGroupExpandableListView extends ExpandableListView {
 					setSelectedGroup(mCurrentFloatingGroupPosition);
 					playSoundEffect(SoundEffectConstants.CLICK);
 
-					mCurrentFloatingGroupView = mAdapter.getGroupView(mCurrentFloatingGroupPosition, mAdapter.isGroupExpanded(mCurrentFloatingGroupPosition), mCurrentFloatingGroupView, this);
-					loadAttachInfo();
-					setAttachInfo(mCurrentFloatingGroupView);
 					handled = true;
 				}
-				// invalidate();
 			}
 		}
 
@@ -133,11 +129,34 @@ public class FloatingGroupExpandableListView extends ExpandableListView {
 	}
 
 	private void createFloatingGroupView(int firstVisibleFlatPosition) {
+		mCurrentFloatingGroupView = null;
 		mCurrentFloatingGroupPosition = getPackedPositionGroup(getExpandableListPosition(firstVisibleFlatPosition));
+
+		final int currentGroupFlatPosition = getFlatListPosition(getPackedPositionForGroup(mCurrentFloatingGroupPosition));
+		final int currentGroupListPosition = currentGroupFlatPosition - firstVisibleFlatPosition;
+
+		if(currentGroupListPosition >= 0 && currentGroupListPosition < getChildCount()) {
+			final View currentGroupView = getChildAt(currentGroupListPosition);
+
+			if(currentGroupView.getTop() > getPaddingTop()) {
+				final Object tag = currentGroupView.getTag(R.id.fgelv_tag_changed_visibility);
+				if(tag instanceof Boolean) {
+					final boolean changedVisibility = (Boolean) tag;
+					if(changedVisibility) {
+						currentGroupView.setVisibility(View.VISIBLE);
+					}
+				}
+				return;
+			} else if(currentGroupView.getTop() <= getPaddingTop() && currentGroupView.getVisibility() == View.VISIBLE) {
+				currentGroupView.setVisibility(View.INVISIBLE);
+				currentGroupView.setTag(R.id.fgelv_tag_changed_visibility, true);
+			}
+		}
 
 		final int nextGroupFlatPosition = getFlatListPosition(getPackedPositionForGroup(mCurrentFloatingGroupPosition + 1));
 		final int nextGroupListPosition = nextGroupFlatPosition - firstVisibleFlatPosition;
 		View nextGroupView = null;
+
 		if(nextGroupListPosition >= 0 && nextGroupListPosition < getChildCount()) {
 			nextGroupView = getChildAt(nextGroupListPosition);
 
@@ -156,24 +175,10 @@ public class FloatingGroupExpandableListView extends ExpandableListView {
 			mCurrentFloatingGroupView = mAdapter.getGroupView(mCurrentFloatingGroupPosition, mAdapter.isGroupExpanded(mCurrentFloatingGroupPosition), mCurrentFloatingGroupView, this);
 			loadAttachInfo();
 			setAttachInfo(mCurrentFloatingGroupView);
-
-		} else {
-			mCurrentFloatingGroupView = null;
 		}
 
 		if(mCurrentFloatingGroupView == null || mCurrentFloatingGroupView.getVisibility() != View.VISIBLE) {
 			return;
-		}
-
-		final int currentGroupFlatPosition = getFlatListPosition(getPackedPositionForGroup(mCurrentFloatingGroupPosition));
-		final int currentGroupListPosition = currentGroupFlatPosition - firstVisibleFlatPosition;
-		if(currentGroupListPosition >= 0 && currentGroupListPosition < getChildCount()) {
-			final View currentGroupView = getChildAt(currentGroupListPosition);
-
-			if(currentGroupView.getVisibility() == View.VISIBLE) {
-				currentGroupView.setVisibility(View.INVISIBLE);
-				currentGroupView.setTag(R.id.fgelv_tag_changed_visibility, true);
-			}
 		}
 
 		final int widthMeasureSpec = MeasureSpec.makeMeasureSpec(getWidth() - getPaddingLeft() - getPaddingRight(),  MeasureSpec.EXACTLY);
@@ -181,12 +186,12 @@ public class FloatingGroupExpandableListView extends ExpandableListView {
 		mCurrentFloatingGroupView.measure(widthMeasureSpec, heightMeasureSpec);
 
 		int currentFloatingGroupScrollY = 0;
-		if(nextGroupView != null && nextGroupView.getTop() < getPaddingTop() + mCurrentFloatingGroupView.getMeasuredHeight() + 2 * getDividerHeight()) {
-			currentFloatingGroupScrollY = nextGroupView.getTop() - (getPaddingTop() + mCurrentFloatingGroupView.getMeasuredHeight() + 2 * getDividerHeight());
+		if(nextGroupView != null && nextGroupView.getTop() < getPaddingTop() + mCurrentFloatingGroupView.getMeasuredHeight() + getDividerHeight()) {
+			currentFloatingGroupScrollY = nextGroupView.getTop() - (getPaddingTop() + mCurrentFloatingGroupView.getMeasuredHeight() + getDividerHeight());
 		}
 
 		final int left = getPaddingLeft();
-		final int top = getPaddingTop() + getDividerHeight() + currentFloatingGroupScrollY;
+		final int top = getPaddingTop() + currentFloatingGroupScrollY;
 		final int right = left + mCurrentFloatingGroupView.getMeasuredWidth();
 		final int bottom = top + mCurrentFloatingGroupView.getMeasuredHeight();
 		mCurrentFloatingGroupView.layout(left, top, right, bottom);
@@ -198,7 +203,7 @@ public class FloatingGroupExpandableListView extends ExpandableListView {
 			}
 		}
 	}
-	
+
 	private void loadAttachInfo() {
 		if(mViewAttachInfo == null) {
 			try {
@@ -210,7 +215,7 @@ public class FloatingGroupExpandableListView extends ExpandableListView {
 			}
 		}
 	}
-	
+
 	private void setAttachInfo(View v) {
 		if(v == null) {
 			return;
