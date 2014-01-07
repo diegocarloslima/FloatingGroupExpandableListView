@@ -18,6 +18,8 @@ import android.widget.ExpandableListView;
 
 public class FloatingGroupExpandableListView extends ExpandableListView {
 
+	private static final int[] STATE_SET_NOTHING = new int[]{};
+
 	private WrapperExpandableListAdapter mAdapter;
 	private OnScrollListener mOnScrollListener;
 
@@ -32,6 +34,7 @@ public class FloatingGroupExpandableListView extends ExpandableListView {
 	private Object mViewAttachInfo;
 	private boolean mHandledByOnInterceptTouchEvent;
 	private boolean mHandledByOnTouchEvent;
+	private Runnable mOnClickAction;
 
 	private boolean mSelectorEnabled;
 	private boolean mShouldPositionSelector;
@@ -39,19 +42,24 @@ public class FloatingGroupExpandableListView extends ExpandableListView {
 	private Drawable mSelector;
 	private int mSelectorPosition;
 	private final Rect mSelectorRect = new Rect();
-	private final Runnable mPositionSelectorOnTap;
+	private Runnable mPositionSelectorOnTapAction;
 
 	public FloatingGroupExpandableListView(Context context) {
-		this(context, null);
+		super(context);
+		init();
 	}
 
 	public FloatingGroupExpandableListView(Context context, AttributeSet attrs) {
-		this(context, attrs, 0);
+		super(context, attrs);
+		init();
 	}
 
 	public FloatingGroupExpandableListView(Context context, AttributeSet attrs, int defStyle) {
 		super(context, attrs, defStyle);
+		init();
+	}
 
+	private void init() {
 		super.setOnScrollListener(new OnScrollListener() {
 
 			@Override
@@ -73,11 +81,29 @@ public class FloatingGroupExpandableListView extends ExpandableListView {
 			}
 		});
 
-		mPositionSelectorOnTap = new Runnable() {
+		mOnClickAction = new Runnable() {
+
+			@Override
+			public void run() {
+				if(mAdapter.isGroupExpanded(mFloatingGroupPackedPosition)) {
+					collapseGroup(mFloatingGroupPackedPosition);
+				} else {
+					expandGroup(mFloatingGroupPackedPosition);
+				}
+				setSelectedGroup(mFloatingGroupPackedPosition);
+			}
+
+		};
+
+		mPositionSelectorOnTapAction = new Runnable() {
 
 			@Override
 			public void run() {
 				positionSelectorOnFloatingGroup();
+				setPressed(true);
+				if (mFloatingGroupView != null) {
+					mFloatingGroupView.setPressed(true);
+				}
 			}
 		};
 	}
@@ -104,7 +130,7 @@ public class FloatingGroupExpandableListView extends ExpandableListView {
 			drawChild(canvas, mFloatingGroupView, getDrawingTime());
 			canvas.restore();
 		}
-		
+
 		if(mDrawSelectorOnTop) {
 			drawDefaultSelector(canvas);
 			drawFloatingGroupSelector(canvas);
@@ -132,11 +158,15 @@ public class FloatingGroupExpandableListView extends ExpandableListView {
 					switch(action) {
 					case MotionEvent.ACTION_DOWN:
 						mShouldPositionSelector = true;
-						removeCallbacks(mPositionSelectorOnTap);
-						postDelayed(mPositionSelectorOnTap, ViewConfiguration.getTapTimeout());
+						removeCallbacks(mPositionSelectorOnTapAction);
+						postDelayed(mPositionSelectorOnTapAction, ViewConfiguration.getTapTimeout());
 						break;
 					case MotionEvent.ACTION_UP:
 						positionSelectorOnFloatingGroup();
+						setPressed(true);
+						if (mFloatingGroupView != null) {
+							mFloatingGroupView.setPressed(true);
+						}
 						break;
 					}
 				}
@@ -255,27 +285,21 @@ public class FloatingGroupExpandableListView extends ExpandableListView {
 
 		if(mFloatingGroupPackedPosition >= 0) {
 			mFloatingGroupView = mAdapter.getGroupView(mFloatingGroupPackedPosition, mAdapter.isGroupExpanded(mFloatingGroupPackedPosition), mFloatingGroupView, this);
-			
+
 			if(!mFloatingGroupView.isClickable()) {
 				mSelectorEnabled = true;
 				mFloatingGroupView.setOnClickListener(new View.OnClickListener() {
 
 					@Override
 					public void onClick(View v) {
-						positionSelectorOnFloatingGroup();
-
-						if(mAdapter.isGroupExpanded(mFloatingGroupPackedPosition)) {
-							collapseGroup(mFloatingGroupPackedPosition);
-						} else {
-							expandGroup(mFloatingGroupPackedPosition);
-						}
-						setSelectedGroup(mFloatingGroupPackedPosition);
+						postDelayed(mOnClickAction, ViewConfiguration.getPressedStateDuration());
+						// positionSelectorOnFloatingGroup();
 					}
 				});
 			} else {
 				mSelectorEnabled = false;
 			}
-			
+
 			loadAttachInfo();
 			setAttachInfo(mFloatingGroupView);
 		}
@@ -333,13 +357,13 @@ public class FloatingGroupExpandableListView extends ExpandableListView {
 			invalidate();
 		}
 		mShouldPositionSelector = false;
-		removeCallbacks(mPositionSelectorOnTap);
+		removeCallbacks(mPositionSelectorOnTapAction);
 	}
-	
+
 	private void drawDefaultSelector(Canvas canvas) {
 		final int floatingGroupFlatPosition = getFlatListPosition(getPackedPositionForGroup(mFloatingGroupPackedPosition));
 		final int selectorListPosition = mSelectorPosition - getFirstVisiblePosition();
-		
+
 		if(selectorListPosition >= 0 && selectorListPosition < getChildCount() && mSelectorRect != null && !mSelectorRect.isEmpty()) {
 			if(mSelectorPosition != floatingGroupFlatPosition || mSelectorPosition == floatingGroupFlatPosition && mFloatingGroupView == null) {
 				drawSelector(canvas);
@@ -349,7 +373,7 @@ public class FloatingGroupExpandableListView extends ExpandableListView {
 
 	private void drawFloatingGroupSelector(Canvas canvas) {
 		final int floatingGroupFlatPosition = getFlatListPosition(getPackedPositionForGroup(mFloatingGroupPackedPosition));
-		
+
 		if(mFloatingGroupEnabled && mFloatingGroupView != null && mFloatingGroupView.getVisibility() == View.VISIBLE && mSelectorPosition == floatingGroupFlatPosition && mSelectorRect != null && !mSelectorRect.isEmpty()) {
 			mSelectorRect.set(mFloatingGroupView.getLeft(), mFloatingGroupView.getTop(), mFloatingGroupView.getRight(), mFloatingGroupView.getBottom());
 			drawSelector(canvas);
@@ -359,7 +383,11 @@ public class FloatingGroupExpandableListView extends ExpandableListView {
 	private void drawSelector(Canvas canvas) {
 		canvas.save();
 		canvas.clipRect(getPaddingLeft(), getPaddingTop(), getWidth() - getPaddingRight(), getHeight() - getPaddingBottom());
-		mSelector.setState(getDrawableState());
+		if(isPressed()) {
+			mSelector.setState(getDrawableState());
+		} else {
+			mSelector.setState(STATE_SET_NOTHING);
+		}
 		mSelector.setBounds(mSelectorRect);
 		mSelector.draw(canvas);
 		canvas.restore();
