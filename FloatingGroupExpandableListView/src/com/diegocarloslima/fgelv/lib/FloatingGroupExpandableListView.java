@@ -18,7 +18,27 @@ import android.widget.ExpandableListView;
 
 public class FloatingGroupExpandableListView extends ExpandableListView {
 
-	private static final int[] STATE_SET_NOTHING = new int[]{};
+	private static final int[] EMPTY_STATE_SET = {};
+
+    // State indicating the group is expanded
+    private static final int[] GROUP_EXPANDED_STATE_SET =
+            {android.R.attr.state_expanded};
+
+    // State indicating the group is empty (has no children)
+    private static final int[] GROUP_EMPTY_STATE_SET =
+            {android.R.attr.state_empty};
+
+    // State indicating the group is expanded and empty (has no children) 
+    private static final int[] GROUP_EXPANDED_EMPTY_STATE_SET =
+            {android.R.attr.state_expanded, android.R.attr.state_empty};
+
+    // States for the group where the 0th bit is expanded and 1st bit is empty.
+    private static final int[][] GROUP_STATE_SETS = {
+         EMPTY_STATE_SET, // 00
+         GROUP_EXPANDED_STATE_SET, // 01
+         GROUP_EMPTY_STATE_SET, // 10
+         GROUP_EXPANDED_EMPTY_STATE_SET // 11
+    };
 
 	private WrapperExpandableListAdapter mAdapter;
 	private OnScrollListener mOnScrollListener;
@@ -43,6 +63,8 @@ public class FloatingGroupExpandableListView extends ExpandableListView {
 	private int mSelectorPosition;
 	private final Rect mSelectorRect = new Rect();
 	private Runnable mPositionSelectorOnTapAction;
+	
+	private final Rect mIndicatorRect = new Rect();
 
 	public FloatingGroupExpandableListView(Context context) {
 		super(context);
@@ -124,10 +146,11 @@ public class FloatingGroupExpandableListView extends ExpandableListView {
 			if(!mDrawSelectorOnTop) {
 				drawFloatingGroupSelector(canvas);
 			}
-
+			
 			canvas.save();
 			canvas.clipRect(getPaddingLeft(), getPaddingTop(), getWidth() - getPaddingRight(), getHeight() - getPaddingBottom());
 			drawChild(canvas, mFloatingGroupView, getDrawingTime());
+			drawFloatingGroupIndicator(canvas);
 			canvas.restore();
 		}
 
@@ -386,11 +409,28 @@ public class FloatingGroupExpandableListView extends ExpandableListView {
 		if(isPressed()) {
 			mSelector.setState(getDrawableState());
 		} else {
-			mSelector.setState(STATE_SET_NOTHING);
+			mSelector.setState(EMPTY_STATE_SET);
 		}
 		mSelector.setBounds(mSelectorRect);
 		mSelector.draw(canvas);
 		canvas.restore();
+	}
+	
+	private void drawFloatingGroupIndicator(Canvas canvas) {
+		final Drawable groupIndicator = (Drawable) ReflectionUtils.getFieldValue(ExpandableListView.class, "mGroupIndicator", FloatingGroupExpandableListView.this);
+		if(groupIndicator != null) {
+			final int stateSetIndex =
+					(mAdapter.isGroupExpanded(mFloatingGroupPackedPosition) ? 1 : 0) | // Expanded?
+					(mAdapter.getChildrenCount(mFloatingGroupPackedPosition) > 0 ? 2 : 0); // Empty?
+			groupIndicator.setState(GROUP_STATE_SETS[stateSetIndex]);
+			
+			final int indicatorLeft = (Integer) ReflectionUtils.getFieldValue(ExpandableListView.class, "mIndicatorLeft", FloatingGroupExpandableListView.this);
+			final int indicatorRight = (Integer) ReflectionUtils.getFieldValue(ExpandableListView.class, "mIndicatorRight", FloatingGroupExpandableListView.this);
+			mIndicatorRect.set(indicatorLeft + getPaddingLeft(), mFloatingGroupView.getTop(), indicatorRight + getPaddingLeft(), mFloatingGroupView.getBottom());
+			
+			groupIndicator.setBounds(mIndicatorRect);
+			groupIndicator.draw(canvas);
+		}
 	}
 
 	public interface OnScrollFloatingGroupListener {
