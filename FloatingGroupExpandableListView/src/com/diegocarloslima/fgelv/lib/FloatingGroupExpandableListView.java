@@ -20,25 +20,22 @@ public class FloatingGroupExpandableListView extends ExpandableListView {
 
 	private static final int[] EMPTY_STATE_SET = {};
 
-    // State indicating the group is expanded
-    private static final int[] GROUP_EXPANDED_STATE_SET =
-            {android.R.attr.state_expanded};
+	// State indicating the group is expanded
+	private static final int[] GROUP_EXPANDED_STATE_SET = {android.R.attr.state_expanded};
 
-    // State indicating the group is empty (has no children)
-    private static final int[] GROUP_EMPTY_STATE_SET =
-            {android.R.attr.state_empty};
+	// State indicating the group is empty (has no children)
+	private static final int[] GROUP_EMPTY_STATE_SET = {android.R.attr.state_empty};
 
-    // State indicating the group is expanded and empty (has no children) 
-    private static final int[] GROUP_EXPANDED_EMPTY_STATE_SET =
-            {android.R.attr.state_expanded, android.R.attr.state_empty};
+	// State indicating the group is expanded and empty (has no children) 
+	private static final int[] GROUP_EXPANDED_EMPTY_STATE_SET = {android.R.attr.state_expanded, android.R.attr.state_empty};
 
-    // States for the group where the 0th bit is expanded and 1st bit is empty.
-    private static final int[][] GROUP_STATE_SETS = {
-         EMPTY_STATE_SET, // 00
-         GROUP_EXPANDED_STATE_SET, // 01
-         GROUP_EMPTY_STATE_SET, // 10
-         GROUP_EXPANDED_EMPTY_STATE_SET // 11
-    };
+	// States for the group where the 0th bit is expanded and 1st bit is empty.
+	private static final int[][] GROUP_STATE_SETS = {
+		EMPTY_STATE_SET, // 00
+		GROUP_EXPANDED_STATE_SET, // 01
+		GROUP_EMPTY_STATE_SET, // 10
+		GROUP_EXPANDED_EMPTY_STATE_SET // 11
+	};
 
 	private WrapperExpandableListAdapter mAdapter;
 	private OnScrollListener mOnScrollListener;
@@ -63,7 +60,7 @@ public class FloatingGroupExpandableListView extends ExpandableListView {
 	private int mSelectorPosition;
 	private final Rect mSelectorRect = new Rect();
 	private Runnable mPositionSelectorOnTapAction;
-	
+
 	private final Rect mIndicatorRect = new Rect();
 
 	public FloatingGroupExpandableListView(Context context) {
@@ -146,7 +143,7 @@ public class FloatingGroupExpandableListView extends ExpandableListView {
 			if(!mDrawSelectorOnTop) {
 				drawFloatingGroupSelector(canvas);
 			}
-			
+
 			canvas.save();
 			canvas.clipRect(getPaddingLeft(), getPaddingTop(), getWidth() - getPaddingRight(), getHeight() - getPaddingBottom());
 			drawChild(canvas, mFloatingGroupView, getDrawingTime());
@@ -173,8 +170,8 @@ public class FloatingGroupExpandableListView extends ExpandableListView {
 		// If touch events are being handled by onInterceptTouchEvent() or onTouchEvent() we shouldn't dispatch them to the floating group
 		if(!mHandledByOnInterceptTouchEvent && !mHandledByOnTouchEvent && mFloatingGroupView != null) {
 			final int screenCoords[] = new int[2];
-			getLocationOnScreen(screenCoords);
-			final RectF floatingGroupRect = new RectF(screenCoords[0], screenCoords[1], screenCoords[0] + mFloatingGroupView.getWidth(), screenCoords[1] + mFloatingGroupView.getHeight());
+			getLocationInWindow(screenCoords);
+			final RectF floatingGroupRect = new RectF(screenCoords[0] + mFloatingGroupView.getLeft(), screenCoords[1] + mFloatingGroupView.getTop(), screenCoords[0] + mFloatingGroupView.getRight(), screenCoords[1] + mFloatingGroupView.getBottom());
 
 			if(floatingGroupRect.contains(ev.getRawX(), ev.getRawY())) {
 				if(mSelectorEnabled) {
@@ -415,7 +412,7 @@ public class FloatingGroupExpandableListView extends ExpandableListView {
 		mSelector.draw(canvas);
 		canvas.restore();
 	}
-	
+
 	private void drawFloatingGroupIndicator(Canvas canvas) {
 		final Drawable groupIndicator = (Drawable) ReflectionUtils.getFieldValue(ExpandableListView.class, "mGroupIndicator", FloatingGroupExpandableListView.this);
 		if(groupIndicator != null) {
@@ -423,11 +420,11 @@ public class FloatingGroupExpandableListView extends ExpandableListView {
 					(mAdapter.isGroupExpanded(mFloatingGroupPackedPosition) ? 1 : 0) | // Expanded?
 					(mAdapter.getChildrenCount(mFloatingGroupPackedPosition) > 0 ? 2 : 0); // Empty?
 			groupIndicator.setState(GROUP_STATE_SETS[stateSetIndex]);
-			
+
 			final int indicatorLeft = (Integer) ReflectionUtils.getFieldValue(ExpandableListView.class, "mIndicatorLeft", FloatingGroupExpandableListView.this);
 			final int indicatorRight = (Integer) ReflectionUtils.getFieldValue(ExpandableListView.class, "mIndicatorRight", FloatingGroupExpandableListView.this);
 			mIndicatorRect.set(indicatorLeft + getPaddingLeft(), mFloatingGroupView.getTop(), indicatorRight + getPaddingLeft(), mFloatingGroupView.getBottom());
-			
+
 			groupIndicator.setBounds(mIndicatorRect);
 			groupIndicator.draw(canvas);
 		}
