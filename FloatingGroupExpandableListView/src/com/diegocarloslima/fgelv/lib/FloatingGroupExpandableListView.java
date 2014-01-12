@@ -260,6 +260,18 @@ public class FloatingGroupExpandableListView extends ExpandableListView {
 		mFloatingGroupView = null;
 		mFloatingGroupPackedPosition = getPackedPositionGroup(getExpandableListPosition(position));
 
+		for(int i = 0; i < getChildCount(); i++) {
+			final View child = getChildAt(i);
+			final Object tag = child.getTag(R.id.fgelv_tag_changed_visibility);
+			if(tag instanceof Boolean) {
+				final boolean changedVisibility = (Boolean) tag;
+				if(changedVisibility) {
+					child.setVisibility(View.VISIBLE);
+					child.setTag(R.id.fgelv_tag_changed_visibility, null);
+				}
+			}
+		}
+		
 		if(!mFloatingGroupEnabled) {
 			return;
 		}
@@ -271,35 +283,10 @@ public class FloatingGroupExpandableListView extends ExpandableListView {
 			final View currentGroupView = getChildAt(floatingGroupListPosition);
 
 			if(currentGroupView.getTop() > getPaddingTop()) {
-				final Object tag = currentGroupView.getTag(R.id.fgelv_tag_changed_visibility);
-				if(tag instanceof Boolean) {
-					final boolean changedVisibility = (Boolean) tag;
-					if(changedVisibility) {
-						currentGroupView.setVisibility(View.VISIBLE);
-					}
-				}
 				return;
 			} else if(currentGroupView.getTop() <= getPaddingTop() && currentGroupView.getVisibility() == View.VISIBLE) {
 				currentGroupView.setVisibility(View.INVISIBLE);
 				currentGroupView.setTag(R.id.fgelv_tag_changed_visibility, true);
-			}
-		}
-
-		final int nextGroupFlatPosition = getFlatListPosition(getPackedPositionForGroup(mFloatingGroupPackedPosition + 1));
-		final int nextGroupListPosition = nextGroupFlatPosition - position;
-		View nextGroupView = null;
-
-		if(nextGroupListPosition >= 0 && nextGroupListPosition < getChildCount()) {
-			nextGroupView = getChildAt(nextGroupListPosition);
-
-			if(nextGroupView.getVisibility() == View.INVISIBLE) {
-				final Object tag = nextGroupView.getTag(R.id.fgelv_tag_changed_visibility);
-				if(tag instanceof Boolean) {
-					final boolean changedVisibility = (Boolean) tag;
-					if(changedVisibility) {
-						nextGroupView.setVisibility(View.VISIBLE);
-					}
-				}
 			}
 		}
 
@@ -313,7 +300,6 @@ public class FloatingGroupExpandableListView extends ExpandableListView {
 					@Override
 					public void onClick(View v) {
 						postDelayed(mOnClickAction, ViewConfiguration.getPressedStateDuration());
-						// positionSelectorOnFloatingGroup();
 					}
 				});
 			} else {
@@ -332,18 +318,26 @@ public class FloatingGroupExpandableListView extends ExpandableListView {
 		final int heightMeasureSpec = MeasureSpec.makeMeasureSpec(getHeight() - getPaddingTop() - getPaddingBottom(), MeasureSpec.AT_MOST);
 		mFloatingGroupView.measure(widthMeasureSpec, heightMeasureSpec);
 
-		int currentFloatingGroupScrollY = 0;
-		if(nextGroupView != null && nextGroupView.getTop() < getPaddingTop() + mFloatingGroupView.getMeasuredHeight() + getDividerHeight()) {
-			currentFloatingGroupScrollY = nextGroupView.getTop() - (getPaddingTop() + mFloatingGroupView.getMeasuredHeight() + getDividerHeight());
+		int floatingGroupScrollY = 0;
+		
+		final int nextGroupFlatPosition = getFlatListPosition(getPackedPositionForGroup(mFloatingGroupPackedPosition + 1));
+		final int nextGroupListPosition = nextGroupFlatPosition - position;
+
+		if(nextGroupListPosition >= 0 && nextGroupListPosition < getChildCount()) {
+			final View nextGroupView = getChildAt(nextGroupListPosition);
+			
+			if(nextGroupView != null && nextGroupView.getTop() < getPaddingTop() + mFloatingGroupView.getMeasuredHeight() + getDividerHeight()) {
+				floatingGroupScrollY = nextGroupView.getTop() - (getPaddingTop() + mFloatingGroupView.getMeasuredHeight() + getDividerHeight());
+			}
 		}
 
 		final int left = getPaddingLeft();
-		final int top = getPaddingTop() + currentFloatingGroupScrollY;
+		final int top = getPaddingTop() + floatingGroupScrollY;
 		final int right = left + mFloatingGroupView.getMeasuredWidth();
 		final int bottom = top + mFloatingGroupView.getMeasuredHeight();
 		mFloatingGroupView.layout(left, top, right, bottom);
 
-		mFloatingGroupScrollY = currentFloatingGroupScrollY;
+		mFloatingGroupScrollY = floatingGroupScrollY;
 		if(mOnScrollFloatingGroupListener != null) {
 			mOnScrollFloatingGroupListener.onScrollFloatingGroupListener(mFloatingGroupView, mFloatingGroupScrollY);
 		}
