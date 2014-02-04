@@ -316,6 +316,11 @@ public class FloatingGroupExpandableListView extends ExpandableListView {
 
 		final int widthMeasureSpec = MeasureSpec.makeMeasureSpec(getWidth() - getPaddingLeft() - getPaddingRight(),  MeasureSpec.EXACTLY);
 		final int heightMeasureSpec = MeasureSpec.makeMeasureSpec(getHeight() - getPaddingTop() - getPaddingBottom(), MeasureSpec.AT_MOST);
+		
+		if(mFloatingGroupView.getLayoutParams() == null) {
+			mFloatingGroupView.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+		}
+		
 		mFloatingGroupView.measure(widthMeasureSpec, heightMeasureSpec);
 
 		int floatingGroupScrollY = 0;
