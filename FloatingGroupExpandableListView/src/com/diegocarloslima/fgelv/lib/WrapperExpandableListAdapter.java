@@ -15,6 +15,10 @@ public class WrapperExpandableListAdapter extends BaseExpandableListAdapter {
 		mWrappedAdapter = adapter;
 	}
 	
+	public BaseExpandableListAdapter getWrappedAdapter() {
+		return mWrappedAdapter;
+	}
+	
 	@Override
 	public void registerDataSetObserver(DataSetObserver observer) {
 		mWrappedAdapter.registerDataSetObserver(observer);
