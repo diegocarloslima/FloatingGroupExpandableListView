@@ -8,6 +8,8 @@ import android.graphics.RectF;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.util.AttributeSet;
+import android.view.ContextMenu.ContextMenuInfo;
+import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewConfiguration;
@@ -43,7 +45,7 @@ public class FloatingGroupExpandableListView extends ExpandableListView {
 	// By default, the floating group is enabled
 	private boolean mFloatingGroupEnabled = true;
 	private View mFloatingGroupView;
-	private int mFloatingGroupPackedPosition;
+	private int mFloatingGroupPosition;
 	private int mFloatingGroupScrollY;
 	private OnScrollFloatingGroupListener mOnScrollFloatingGroupListener;
 
@@ -52,6 +54,7 @@ public class FloatingGroupExpandableListView extends ExpandableListView {
 	private boolean mHandledByOnInterceptTouchEvent;
 	private boolean mHandledByOnTouchEvent;
 	private Runnable mOnClickAction;
+	private GestureDetector mGestureDetector;
 
 	private boolean mSelectorEnabled;
 	private boolean mShouldPositionSelector;
@@ -104,12 +107,12 @@ public class FloatingGroupExpandableListView extends ExpandableListView {
 
 			@Override
 			public void run() {
-				if(mAdapter.isGroupExpanded(mFloatingGroupPackedPosition)) {
-					collapseGroup(mFloatingGroupPackedPosition);
+				if(mAdapter.isGroupExpanded(mFloatingGroupPosition)) {
+					collapseGroup(mFloatingGroupPosition);
 				} else {
-					expandGroup(mFloatingGroupPackedPosition);
+					expandGroup(mFloatingGroupPosition);
 				}
-				setSelectedGroup(mFloatingGroupPackedPosition);
+				setSelectedGroup(mFloatingGroupPosition);
 			}
 
 		};
@@ -125,6 +128,18 @@ public class FloatingGroupExpandableListView extends ExpandableListView {
 				}
 			}
 		};
+		
+		mGestureDetector = new GestureDetector(getContext(), new GestureDetector.SimpleOnGestureListener() {
+
+			@Override
+			public void onLongPress(MotionEvent e) {
+				if(!mFloatingGroupView.isLongClickable()) {
+					final ContextMenuInfo contextMenuInfo = new ExpandableListContextMenuInfo(mFloatingGroupView, getPackedPositionForGroup(mFloatingGroupPosition), mAdapter.getGroupId(mFloatingGroupPosition));
+					ReflectionUtils.setFieldValue(AbsListView.class, "mContextMenuInfo", FloatingGroupExpandableListView.this, contextMenuInfo);
+					showContextMenu();
+				}
+			}
+		});
 	}
 
 	@Override
@@ -192,6 +207,7 @@ public class FloatingGroupExpandableListView extends ExpandableListView {
 				}
 
 				if(mFloatingGroupView.dispatchTouchEvent(ev)) {
+					mGestureDetector.onTouchEvent(ev);
 					onInterceptTouchEvent(ev);
 					return true;
 				}
@@ -258,7 +274,7 @@ public class FloatingGroupExpandableListView extends ExpandableListView {
 
 	private void createFloatingGroupView(int position) {
 		mFloatingGroupView = null;
-		mFloatingGroupPackedPosition = getPackedPositionGroup(getExpandableListPosition(position));
+		mFloatingGroupPosition = getPackedPositionGroup(getExpandableListPosition(position));
 
 		for(int i = 0; i < getChildCount(); i++) {
 			final View child = getChildAt(i);
@@ -276,7 +292,7 @@ public class FloatingGroupExpandableListView extends ExpandableListView {
 			return;
 		}
 
-		final int floatingGroupFlatPosition = getFlatListPosition(getPackedPositionForGroup(mFloatingGroupPackedPosition));
+		final int floatingGroupFlatPosition = getFlatListPosition(getPackedPositionForGroup(mFloatingGroupPosition));
 		final int floatingGroupListPosition = floatingGroupFlatPosition - position;
 
 		if(floatingGroupListPosition >= 0 && floatingGroupListPosition < getChildCount()) {
@@ -290,8 +306,8 @@ public class FloatingGroupExpandableListView extends ExpandableListView {
 			}
 		}
 
-		if(mFloatingGroupPackedPosition >= 0) {
-			mFloatingGroupView = mAdapter.getGroupView(mFloatingGroupPackedPosition, mAdapter.isGroupExpanded(mFloatingGroupPackedPosition), mFloatingGroupView, this);
+		if(mFloatingGroupPosition >= 0) {
+			mFloatingGroupView = mAdapter.getGroupView(mFloatingGroupPosition, mAdapter.isGroupExpanded(mFloatingGroupPosition), mFloatingGroupView, this);
 
 			if(!mFloatingGroupView.isClickable()) {
 				mSelectorEnabled = true;
@@ -325,7 +341,7 @@ public class FloatingGroupExpandableListView extends ExpandableListView {
 
 		int floatingGroupScrollY = 0;
 		
-		final int nextGroupFlatPosition = getFlatListPosition(getPackedPositionForGroup(mFloatingGroupPackedPosition + 1));
+		final int nextGroupFlatPosition = getFlatListPosition(getPackedPositionForGroup(mFloatingGroupPosition + 1));
 		final int nextGroupListPosition = nextGroupFlatPosition - position;
 
 		if(nextGroupListPosition >= 0 && nextGroupListPosition < getChildCount()) {
@@ -371,7 +387,7 @@ public class FloatingGroupExpandableListView extends ExpandableListView {
 
 	private void positionSelectorOnFloatingGroup() {
 		if(mShouldPositionSelector && mFloatingGroupView != null) {
-			final int floatingGroupFlatPosition = getFlatListPosition(getPackedPositionForGroup(mFloatingGroupPackedPosition));
+			final int floatingGroupFlatPosition = getFlatListPosition(getPackedPositionForGroup(mFloatingGroupPosition));
 			ReflectionUtils.invokeMethod(AbsListView.class, "positionSelector", new Class<?>[]{int.class, View.class}, FloatingGroupExpandableListView.this, floatingGroupFlatPosition, mFloatingGroupView);
 			invalidate();
 		}
@@ -380,7 +396,7 @@ public class FloatingGroupExpandableListView extends ExpandableListView {
 	}
 
 	private void drawDefaultSelector(Canvas canvas) {
-		final int floatingGroupFlatPosition = getFlatListPosition(getPackedPositionForGroup(mFloatingGroupPackedPosition));
+		final int floatingGroupFlatPosition = getFlatListPosition(getPackedPositionForGroup(mFloatingGroupPosition));
 		final int selectorListPosition = mSelectorPosition - getFirstVisiblePosition();
 
 		if(selectorListPosition >= 0 && selectorListPosition < getChildCount() && mSelectorRect != null && !mSelectorRect.isEmpty()) {
@@ -391,7 +407,7 @@ public class FloatingGroupExpandableListView extends ExpandableListView {
 	}
 
 	private void drawFloatingGroupSelector(Canvas canvas) {
-		final int floatingGroupFlatPosition = getFlatListPosition(getPackedPositionForGroup(mFloatingGroupPackedPosition));
+		final int floatingGroupFlatPosition = getFlatListPosition(getPackedPositionForGroup(mFloatingGroupPosition));
 
 		if(mFloatingGroupEnabled && mFloatingGroupView != null && mFloatingGroupView.getVisibility() == View.VISIBLE && mSelectorPosition == floatingGroupFlatPosition && mSelectorRect != null && !mSelectorRect.isEmpty()) {
 			mSelectorRect.set(mFloatingGroupView.getLeft(), mFloatingGroupView.getTop(), mFloatingGroupView.getRight(), mFloatingGroupView.getBottom());
@@ -416,8 +432,8 @@ public class FloatingGroupExpandableListView extends ExpandableListView {
 		final Drawable groupIndicator = (Drawable) ReflectionUtils.getFieldValue(ExpandableListView.class, "mGroupIndicator", FloatingGroupExpandableListView.this);
 		if(groupIndicator != null) {
 			final int stateSetIndex =
-					(mAdapter.isGroupExpanded(mFloatingGroupPackedPosition) ? 1 : 0) | // Expanded?
-					(mAdapter.getChildrenCount(mFloatingGroupPackedPosition) > 0 ? 2 : 0); // Empty?
+					(mAdapter.isGroupExpanded(mFloatingGroupPosition) ? 1 : 0) | // Expanded?
+					(mAdapter.getChildrenCount(mFloatingGroupPosition) > 0 ? 2 : 0); // Empty?
 			groupIndicator.setState(GROUP_STATE_SETS[stateSetIndex]);
 
 			final int indicatorLeft = (Integer) ReflectionUtils.getFieldValue(ExpandableListView.class, "mIndicatorLeft", FloatingGroupExpandableListView.this);
