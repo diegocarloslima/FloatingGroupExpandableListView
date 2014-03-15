@@ -450,9 +450,9 @@ public class FloatingGroupExpandableListView extends ExpandableListView {
 			final int indicatorRight = (Integer) ReflectionUtils.getFieldValue(ExpandableListView.class, "mIndicatorRight", FloatingGroupExpandableListView.this);
 			
 			if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
-				mIndicatorRect.set(indicatorLeft, mFloatingGroupView.getTop(), indicatorRight, mFloatingGroupView.getBottom());
-			} else {
 				mIndicatorRect.set(indicatorLeft + getPaddingLeft(), mFloatingGroupView.getTop(), indicatorRight + getPaddingLeft(), mFloatingGroupView.getBottom());
+			} else {
+				mIndicatorRect.set(indicatorLeft, mFloatingGroupView.getTop(), indicatorRight, mFloatingGroupView.getBottom());
 			}
 
 			groupIndicator.setBounds(mIndicatorRect);
