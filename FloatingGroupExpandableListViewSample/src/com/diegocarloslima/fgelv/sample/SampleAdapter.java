@@ -26,15 +26,15 @@ public class SampleAdapter extends BaseExpandableListAdapter {
 	};
 
 	private final int[] mGroupDrawables = {
-			R.drawable.cupcaket,
-			R.drawable.donutt,
-			R.drawable.eclairt,
-			R.drawable.froyot,
-			R.drawable.gingerbreadt,
-			R.drawable.honeycombt,
-			R.drawable.ice_cream_sandwicht,
-			R.drawable.jelly_beant,
-			R.drawable.kitkatt
+			R.drawable.cupcake,
+			R.drawable.donut,
+			R.drawable.eclair,
+			R.drawable.froyo,
+			R.drawable.gingerbread,
+			R.drawable.honeycomb,
+			R.drawable.ice_cream_sandwich,
+			R.drawable.jelly_bean,
+			R.drawable.kitkat
 	};
 
 	private final String[][] mChilds = {
