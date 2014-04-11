@@ -1,6 +1,7 @@
 package com.diegocarloslima.fgelv.lib;
 
 import android.content.Context;
+import android.database.DataSetObserver;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Rect;
@@ -41,6 +42,7 @@ public class FloatingGroupExpandableListView extends ExpandableListView {
 	};
 
 	private WrapperExpandableListAdapter mAdapter;
+	private DataSetObserver mDataSetObserver;
 	private OnScrollListener mOnScrollListener;
 
 	// By default, the floating group is enabled
@@ -130,9 +132,9 @@ public class FloatingGroupExpandableListView extends ExpandableListView {
 				}
 			}
 		};
-		
+
 		mClearSelectorOnTapAction = new Runnable() {
-			
+
 			@Override
 			public void run() {
 				setPressed(false);
@@ -154,6 +156,36 @@ public class FloatingGroupExpandableListView extends ExpandableListView {
 				}
 			}
 		});
+	}
+
+	@Override
+	protected void onAttachedToWindow() {
+		super.onAttachedToWindow();
+
+		if(mAdapter != null && mDataSetObserver == null) {
+			mDataSetObserver = new DataSetObserver() {
+				@Override
+				public void onChanged() {
+					mFloatingGroupView = null;
+				}
+
+				@Override
+				public void onInvalidated() {
+					mFloatingGroupView = null;
+				}
+			};
+			mAdapter.registerDataSetObserver(mDataSetObserver);
+		}
+	}
+
+	@Override
+	protected void onDetachedFromWindow() {
+		super.onDetachedFromWindow();
+
+		if(mAdapter != null && mDataSetObserver != null) {
+			mAdapter.unregisterDataSetObserver(mDataSetObserver);
+			mDataSetObserver = null;
+		}
 	}
 
 	@Override
@@ -221,10 +253,10 @@ public class FloatingGroupExpandableListView extends ExpandableListView {
 						if (mFloatingGroupView != null) {
 							mFloatingGroupView.setPressed(true);
 						}
-						
+
 						removeCallbacks(mClearSelectorOnTapAction);
 						postDelayed(mClearSelectorOnTapAction, ViewConfiguration.getPressedStateDuration());
-						
+
 						break;
 					}
 				}
@@ -465,7 +497,7 @@ public class FloatingGroupExpandableListView extends ExpandableListView {
 
 			final int indicatorLeft = (Integer) ReflectionUtils.getFieldValue(ExpandableListView.class, "mIndicatorLeft", FloatingGroupExpandableListView.this);
 			final int indicatorRight = (Integer) ReflectionUtils.getFieldValue(ExpandableListView.class, "mIndicatorRight", FloatingGroupExpandableListView.this);
-			
+
 			if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
 				mIndicatorRect.set(indicatorLeft + getPaddingLeft(), mFloatingGroupView.getTop(), indicatorRight + getPaddingLeft(), mFloatingGroupView.getBottom());
 			} else {
