@@ -64,6 +64,7 @@ public class FloatingGroupExpandableListView extends ExpandableListView {
 	private int mSelectorPosition;
 	private final Rect mSelectorRect = new Rect();
 	private Runnable mPositionSelectorOnTapAction;
+	private Runnable mClearSelectorOnTapAction;
 
 	private final Rect mIndicatorRect = new Rect();
 
@@ -127,6 +128,18 @@ public class FloatingGroupExpandableListView extends ExpandableListView {
 				if (mFloatingGroupView != null) {
 					mFloatingGroupView.setPressed(true);
 				}
+			}
+		};
+		
+		mClearSelectorOnTapAction = new Runnable() {
+			
+			@Override
+			public void run() {
+				setPressed(false);
+				if(mFloatingGroupView != null) {
+					mFloatingGroupView.setPressed(false);
+				}
+				invalidate();
 			}
 		};
 
@@ -208,6 +221,10 @@ public class FloatingGroupExpandableListView extends ExpandableListView {
 						if (mFloatingGroupView != null) {
 							mFloatingGroupView.setPressed(true);
 						}
+						
+						removeCallbacks(mClearSelectorOnTapAction);
+						postDelayed(mClearSelectorOnTapAction, ViewConfiguration.getPressedStateDuration());
+						
 						break;
 					}
 				}
