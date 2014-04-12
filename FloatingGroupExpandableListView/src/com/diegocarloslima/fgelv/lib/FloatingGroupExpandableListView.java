@@ -353,9 +353,9 @@ public class FloatingGroupExpandableListView extends ExpandableListView {
 		if(floatingGroupListPosition >= 0 && floatingGroupListPosition < getChildCount()) {
 			final View currentGroupView = getChildAt(floatingGroupListPosition);
 
-			if(currentGroupView.getTop() > getPaddingTop()) {
+			if(currentGroupView.getTop() >= getPaddingTop()) {
 				return;
-			} else if(currentGroupView.getTop() <= getPaddingTop() && currentGroupView.getVisibility() == View.VISIBLE) {
+			} else if(currentGroupView.getTop() < getPaddingTop() && currentGroupView.getVisibility() == View.VISIBLE) {
 				currentGroupView.setVisibility(View.INVISIBLE);
 				currentGroupView.setTag(R.id.fgelv_tag_changed_visibility, true);
 			}
