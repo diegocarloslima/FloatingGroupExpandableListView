@@ -149,7 +149,7 @@ public class FloatingGroupExpandableListView extends ExpandableListView {
 
 			@Override
 			public void onLongPress(MotionEvent e) {
-				if(!mFloatingGroupView.isLongClickable()) {
+				if(mFloatingGroupView != null && !mFloatingGroupView.isLongClickable()) {
 					final ContextMenuInfo contextMenuInfo = new ExpandableListContextMenuInfo(mFloatingGroupView, getPackedPositionForGroup(mFloatingGroupPosition), mAdapter.getGroupId(mFloatingGroupPosition));
 					ReflectionUtils.setFieldValue(AbsListView.class, "mContextMenuInfo", FloatingGroupExpandableListView.this, contextMenuInfo);
 					showContextMenu();
