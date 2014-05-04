@@ -205,21 +205,23 @@ public class FloatingGroupExpandableListView extends ExpandableListView {
 
 		super.dispatchDraw(canvas);
 
-		if(mFloatingGroupEnabled && mFloatingGroupView != null && mFloatingGroupView.getVisibility() == View.VISIBLE) {
+		if(mFloatingGroupEnabled && mFloatingGroupView != null) {
 			if(!mDrawSelectorOnTop) {
 				drawFloatingGroupSelector(canvas);
 			}
 
 			canvas.save();
 			canvas.clipRect(getPaddingLeft(), getPaddingTop(), getWidth() - getPaddingRight(), getHeight() - getPaddingBottom());
-			drawChild(canvas, mFloatingGroupView, getDrawingTime());
+			if(mFloatingGroupView.getVisibility() == View.VISIBLE) {
+				drawChild(canvas, mFloatingGroupView, getDrawingTime());
+			}
 			drawFloatingGroupIndicator(canvas);
 			canvas.restore();
-		}
 
-		if(mDrawSelectorOnTop) {
-			drawDefaultSelector(canvas);
-			drawFloatingGroupSelector(canvas);
+			if(mDrawSelectorOnTop) {
+				drawDefaultSelector(canvas);
+				drawFloatingGroupSelector(canvas);
+			}
 		}
 	}
 
@@ -381,7 +383,7 @@ public class FloatingGroupExpandableListView extends ExpandableListView {
 			setAttachInfo(mFloatingGroupView);
 		}
 
-		if(mFloatingGroupView == null || mFloatingGroupView.getVisibility() != View.VISIBLE) {
+		if(mFloatingGroupView == null) {
 			return;
 		}
 
@@ -455,22 +457,23 @@ public class FloatingGroupExpandableListView extends ExpandableListView {
 	}
 
 	private void drawDefaultSelector(Canvas canvas) {
-		final int floatingGroupFlatPosition = getFlatListPosition(getPackedPositionForGroup(mFloatingGroupPosition));
 		final int selectorListPosition = mSelectorPosition - getFirstVisiblePosition();
 
 		if(selectorListPosition >= 0 && selectorListPosition < getChildCount() && mSelectorRect != null && !mSelectorRect.isEmpty()) {
-			if(mSelectorPosition != floatingGroupFlatPosition || mSelectorPosition == floatingGroupFlatPosition && mFloatingGroupView == null) {
+			final int floatingGroupFlatPosition = getFlatListPosition(getPackedPositionForGroup(mFloatingGroupPosition));
+			if(mFloatingGroupView == null || mSelectorPosition != floatingGroupFlatPosition) {
 				drawSelector(canvas);
 			}
 		}
 	}
 
 	private void drawFloatingGroupSelector(Canvas canvas) {
-		final int floatingGroupFlatPosition = getFlatListPosition(getPackedPositionForGroup(mFloatingGroupPosition));
-
-		if(mFloatingGroupEnabled && mFloatingGroupView != null && mFloatingGroupView.getVisibility() == View.VISIBLE && mSelectorPosition == floatingGroupFlatPosition && mSelectorRect != null && !mSelectorRect.isEmpty()) {
-			mSelectorRect.set(mFloatingGroupView.getLeft(), mFloatingGroupView.getTop(), mFloatingGroupView.getRight(), mFloatingGroupView.getBottom());
-			drawSelector(canvas);
+		if(mSelectorRect != null && !mSelectorRect.isEmpty()) {
+			final int floatingGroupFlatPosition = getFlatListPosition(getPackedPositionForGroup(mFloatingGroupPosition));
+			if(mSelectorPosition == floatingGroupFlatPosition) {
+				mSelectorRect.set(mFloatingGroupView.getLeft(), mFloatingGroupView.getTop(), mFloatingGroupView.getRight(), mFloatingGroupView.getBottom());
+				drawSelector(canvas);
+			}
 		}
 	}
 
