@@ -51,6 +51,7 @@ public class FloatingGroupExpandableListView extends ExpandableListView {
 	private int mFloatingGroupPosition;
 	private int mFloatingGroupScrollY;
 	private OnScrollFloatingGroupListener mOnScrollFloatingGroupListener;
+	private OnGroupClickListener mOnGroupClickListener;
 
 	// An AttachInfo instance is added to the FloatingGroupView in order to have proper touch event handling
 	private Object mViewAttachInfo;
@@ -111,14 +112,18 @@ public class FloatingGroupExpandableListView extends ExpandableListView {
 
 			@Override
 			public void run() {
+				if(mOnGroupClickListener != null) {
+					mOnGroupClickListener.onGroupClick(FloatingGroupExpandableListView.this, mFloatingGroupView, mFloatingGroupPosition, mAdapter.getGroupId(mFloatingGroupPosition));
+				}
+				
 				if(mAdapter.isGroupExpanded(mFloatingGroupPosition)) {
 					collapseGroup(mFloatingGroupPosition);
 				} else {
 					expandGroup(mFloatingGroupPosition);
 				}
+				
 				setSelectedGroup(mFloatingGroupPosition);
 			}
-
 		};
 
 		mPositionSelectorOnTapAction = new Runnable() {
@@ -319,6 +324,12 @@ public class FloatingGroupExpandableListView extends ExpandableListView {
 	@Override
 	public void setOnScrollListener(OnScrollListener listener) {
 		mOnScrollListener = listener;
+	}
+	
+	@Override
+	public void setOnGroupClickListener(OnGroupClickListener onGroupClickListener) {
+		super.setOnGroupClickListener(onGroupClickListener);
+		mOnGroupClickListener = onGroupClickListener;
 	}
 
 	public void setFloatingGroupEnabled(boolean floatingGroupEnabled) {
