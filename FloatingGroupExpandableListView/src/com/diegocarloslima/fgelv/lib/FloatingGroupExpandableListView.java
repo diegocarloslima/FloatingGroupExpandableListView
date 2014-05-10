@@ -112,17 +112,21 @@ public class FloatingGroupExpandableListView extends ExpandableListView {
 
 			@Override
 			public void run() {
+				boolean allowSelection = true;
+			
 				if(mOnGroupClickListener != null) {
-					mOnGroupClickListener.onGroupClick(FloatingGroupExpandableListView.this, mFloatingGroupView, mFloatingGroupPosition, mAdapter.getGroupId(mFloatingGroupPosition));
+					allowSelection = !mOnGroupClickListener.onGroupClick(FloatingGroupExpandableListView.this, mFloatingGroupView, mFloatingGroupPosition, mAdapter.getGroupId(mFloatingGroupPosition));
 				}
 				
-				if(mAdapter.isGroupExpanded(mFloatingGroupPosition)) {
-					collapseGroup(mFloatingGroupPosition);
-				} else {
-					expandGroup(mFloatingGroupPosition);
+				if (allowSelection) {
+					if(mAdapter.isGroupExpanded(mFloatingGroupPosition)) {
+						collapseGroup(mFloatingGroupPosition);
+					} else {
+						expandGroup(mFloatingGroupPosition);
+					}
+			
+					setSelectedGroup(mFloatingGroupPosition);
 				}
-				
-				setSelectedGroup(mFloatingGroupPosition);
 			}
 		};
 
