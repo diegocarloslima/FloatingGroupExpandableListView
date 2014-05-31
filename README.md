@@ -37,6 +37,15 @@ The FloatingGroupExpandableListView is very easy to setup. You just need a few s
 
 3. That's it! You're ready to go! For a complete implementation, you can take a look at the sample project.
 
+## Gradle
+Add the following dependency to your `build.gradle` file:
+
+```groovy
+dependencies {
+    compile 'com.diegocarloslima:fgelv:0.1.+@aar'
+}
+```
+
 ## Used by
 
 Let me know if you are using this lib in your app. I'll be glad to put your app name here :).
