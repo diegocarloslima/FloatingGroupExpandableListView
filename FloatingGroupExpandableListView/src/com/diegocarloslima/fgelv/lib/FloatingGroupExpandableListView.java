@@ -53,6 +53,8 @@ public class FloatingGroupExpandableListView extends ExpandableListView {
 	private OnScrollFloatingGroupListener mOnScrollFloatingGroupListener;
 	private OnGroupClickListener mOnGroupClickListener;
 
+    private int mWidthMeasureSpec;
+
 	// An AttachInfo instance is added to the FloatingGroupView in order to have proper touch event handling
 	private Object mViewAttachInfo;
 	private boolean mHandledByOnInterceptTouchEvent;
@@ -196,6 +198,12 @@ public class FloatingGroupExpandableListView extends ExpandableListView {
 			mDataSetObserver = null;
 		}
 	}
+
+    @Override
+    protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+        super.onMeasure(widthMeasureSpec, heightMeasureSpec);
+        mWidthMeasureSpec = widthMeasureSpec;
+    }
 
 	@Override
 	protected void dispatchDraw(Canvas canvas) {
@@ -402,14 +410,21 @@ public class FloatingGroupExpandableListView extends ExpandableListView {
 			return;
 		}
 
-		final int widthMeasureSpec = MeasureSpec.makeMeasureSpec(getWidth() - getPaddingLeft() - getPaddingRight(),  MeasureSpec.EXACTLY);
-		final int heightMeasureSpec = MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED);
+        AbsListView.LayoutParams params = (AbsListView.LayoutParams) mFloatingGroupView.getLayoutParams();
+        if(params == null) {
+            params = (AbsListView.LayoutParams) generateDefaultLayoutParams();
+        }
 
-		if(mFloatingGroupView.getLayoutParams() == null) {
-			mFloatingGroupView.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
-		}
+        final int childWidthSpec = ViewGroup.getChildMeasureSpec(mWidthMeasureSpec, getPaddingLeft() + getPaddingRight(), params.width);
+        final int paramsHeight = params.height;
+        int childHeightSpec;
+        if(paramsHeight > 0) {
+            childHeightSpec = MeasureSpec.makeMeasureSpec(paramsHeight, MeasureSpec.EXACTLY);
+        } else {
+            childHeightSpec = MeasureSpec.makeMeasureSpec(0 , MeasureSpec.UNSPECIFIED);
+        }
 
-		mFloatingGroupView.measure(widthMeasureSpec, heightMeasureSpec);
+        mFloatingGroupView.measure(childWidthSpec, childHeightSpec);
 
 		int floatingGroupScrollY = 0;
 

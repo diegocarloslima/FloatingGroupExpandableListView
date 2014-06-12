@@ -24,20 +24,22 @@ public class SampleActivity extends Activity {
 		
 		setContentView(R.layout.sample_activity);
 		
-		final LayoutInflater inflater = getLayoutInflater();
-		final View header = inflater.inflate(R.layout.sample_activity_list_header, null);
-		final View footer = inflater.inflate(R.layout.sample_activity_list_footer, null);
-		footer.setOnClickListener(new View.OnClickListener() {
-			
-			@Override
-			public void onClick(View v) {
-				final Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/diegocarloslima/FloatingGroupExpandableListView"));
-				startActivity(intent);
-			}
-		});
-		
 		final FloatingGroupExpandableListView list = (FloatingGroupExpandableListView) findViewById(R.id.sample_activity_list);
+
+        final LayoutInflater inflater = getLayoutInflater();
+
+        final View header = inflater.inflate(R.layout.sample_activity_list_header, list, false);
 		list.addHeaderView(header);
+
+        final View footer = inflater.inflate(R.layout.sample_activity_list_footer, list, false);
+        footer.setOnClickListener(new View.OnClickListener() {
+
+            @Override
+            public void onClick(View v) {
+                final Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/diegocarloslima/FloatingGroupExpandableListView"));
+                startActivity(intent);
+            }
+        });
 		list.addFooterView(footer);
 		
 		// Even though the child divider has already been set on the layout file, we have to set it again here

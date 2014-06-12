@@ -71,23 +71,21 @@ public class SampleAdapter extends BaseExpandableListAdapter {
 
 	@Override
 	public View getGroupView(int groupPosition, boolean isExpanded, View convertView, ViewGroup parent) {
-		View v = convertView;
-
-		if(v == null) {
-			v = mLayoutInflater.inflate(R.layout.sample_activity_list_group_item, null);
+		if(convertView == null) {
+            convertView = mLayoutInflater.inflate(R.layout.sample_activity_list_group_item, parent, false);
 		}
 
-		final ImageView image = (ImageView) v.findViewById(R.id.sample_activity_list_group_item_image);
+		final ImageView image = (ImageView) convertView.findViewById(R.id.sample_activity_list_group_item_image);
 		image.setImageResource(mGroupDrawables[groupPosition]);
 
-		final TextView text = (TextView) v.findViewById(R.id.sample_activity_list_group_item_text);
+		final TextView text = (TextView) convertView.findViewById(R.id.sample_activity_list_group_item_text);
 		text.setText(mGroups[groupPosition]);
 		
-		final ImageView expandedImage = (ImageView) v.findViewById(R.id.sample_activity_list_group_expanded_image);
+		final ImageView expandedImage = (ImageView) convertView.findViewById(R.id.sample_activity_list_group_expanded_image);
 		final int resId = isExpanded ? R.drawable.minus : R.drawable.plus;
 		expandedImage.setImageResource(resId);
 
-		return v;
+		return convertView;
 	}
 
 	@Override
@@ -107,16 +105,14 @@ public class SampleAdapter extends BaseExpandableListAdapter {
 
 	@Override
 	public View getChildView(int groupPosition, int childPosition, boolean isLastChild, View convertView, ViewGroup parent) {
-		View v = convertView;
-
-		if(v == null) {
-			v = mLayoutInflater.inflate(R.layout.sample_activity_list_child_item, null);
+		if(convertView == null) {
+			convertView = mLayoutInflater.inflate(R.layout.sample_activity_list_child_item, parent, false);
 		}
 		
-		final TextView text = (TextView) v.findViewById(R.id.sample_activity_list_child_item_text);
+		final TextView text = (TextView) convertView.findViewById(R.id.sample_activity_list_child_item_text);
 		text.setText(mChilds[groupPosition][childPosition]);
 		
-		return v;
+		return convertView;
 	}
 
 	@Override
