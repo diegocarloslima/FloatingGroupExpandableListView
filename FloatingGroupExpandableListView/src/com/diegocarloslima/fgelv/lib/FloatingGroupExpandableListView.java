@@ -170,26 +170,6 @@ public class FloatingGroupExpandableListView extends ExpandableListView {
 	}
 
 	@Override
-	protected void onAttachedToWindow() {
-		super.onAttachedToWindow();
-
-		if(mAdapter != null && mDataSetObserver == null) {
-			mDataSetObserver = new DataSetObserver() {
-				@Override
-				public void onChanged() {
-					mFloatingGroupView = null;
-				}
-
-				@Override
-				public void onInvalidated() {
-					mFloatingGroupView = null;
-				}
-			};
-			mAdapter.registerDataSetObserver(mDataSetObserver);
-		}
-	}
-
-	@Override
 	protected void onDetachedFromWindow() {
 		super.onDetachedFromWindow();
 
@@ -330,7 +310,28 @@ public class FloatingGroupExpandableListView extends ExpandableListView {
 
 	public void setAdapter(WrapperExpandableListAdapter adapter) {
 		super.setAdapter(adapter);
-		mAdapter = adapter;
+
+        if(mAdapter != null && mDataSetObserver != null) {
+            mAdapter.unregisterDataSetObserver(mDataSetObserver);
+            mDataSetObserver = null;
+        }
+
+        mAdapter = adapter;
+
+        if(mAdapter != null && mDataSetObserver == null) {
+            mDataSetObserver = new DataSetObserver() {
+                @Override
+                public void onChanged() {
+                    mFloatingGroupView = null;
+                }
+
+                @Override
+                public void onInvalidated() {
+                    mFloatingGroupView = null;
+                }
+            };
+            mAdapter.registerDataSetObserver(mDataSetObserver);
+        }
 	}
 
 	@Override
