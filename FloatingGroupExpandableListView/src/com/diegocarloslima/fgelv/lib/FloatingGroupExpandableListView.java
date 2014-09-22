@@ -414,6 +414,7 @@ public class FloatingGroupExpandableListView extends ExpandableListView {
         AbsListView.LayoutParams params = (AbsListView.LayoutParams) mFloatingGroupView.getLayoutParams();
         if(params == null) {
             params = new AbsListView.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT, 0);
+            mFloatingGroupView.setLayoutParams(params);
         }
 
         final int childWidthSpec = ViewGroup.getChildMeasureSpec(mWidthMeasureSpec, getPaddingLeft() + getPaddingRight(), params.width);
