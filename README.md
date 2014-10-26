@@ -48,6 +48,10 @@ dependencies {
 
 ## Used by
 
+[Call recorder (2 in 1) (Free)](https://play.google.com/store/apps/details?id=com.CallVoiceRecorderFree)
+
+[Tourism Coast Atlantic Forest](https://play.google.com/store/apps/details?id=br.com.jalan.oasis2.srcvb2014)
+
 Let me know if you are using this lib in your app. I'll be glad to put your app name here :).
 
 ## Contributing
