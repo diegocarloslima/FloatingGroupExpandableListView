@@ -10,7 +10,7 @@ FloatingGroupExpandableListView is ~~a huge name~~ an open source Android librar
 - Allows group transition animation.
 
 ## Sample Application
-Download the sample app on Google Play. (Soon)
+[![Get it on Google Play](http://www.android.com/images/brand/get_it_on_play_logo_small.png)](https://play.google.com/store/apps/details?id=com.diegocarloslima.fgelv.sample)
 
 The sample app project code is also included on this repository.
 
