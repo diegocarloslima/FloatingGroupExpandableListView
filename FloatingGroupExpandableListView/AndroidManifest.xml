@@ -1,10 +1,4 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.diegocarloslima.fgelv.lib"
-    android:versionCode="10"
-    android:versionName="0.1.0" >
-
-    <uses-sdk
-        android:minSdkVersion="8"
-        android:targetSdkVersion="19" />
+    package="com.diegocarloslima.fgelv.lib">
 
 </manifest>
